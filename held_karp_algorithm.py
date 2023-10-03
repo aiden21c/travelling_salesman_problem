@@ -1,17 +1,6 @@
-import csv
 import itertools
-import time
 
-def read_distances(filename):
-    with open(filename, "r") as f:
-        reader = csv.reader(f)
-        cities = next(reader)[1:]
-        distances = []
-        for row in reader:
-            distances.append([int(x) for x in row[1:]])
-        return cities, distances
-
-def tsp(G, n):
+def hka(G, n):
     # Initialize the memoization table g with a dictionary
     g = {}
 
@@ -53,12 +42,4 @@ def tsp(G, n):
     optimal_path = path[(frozenset(range(1, n)), final_k)] + [0]
 
     return opt, optimal_path
-
-cities, distances = read_distances("csv/distances.csv")
-start_time = time.time()
-result, path = tsp(distances, len(cities))
-execution_time = time.time() - start_time
-print("Minimum TSP cost:", result)
-print("Optimal tour path:", path)
-print(f"Execution Time: {execution_time} seconds.")
 
