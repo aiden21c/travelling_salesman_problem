@@ -1,5 +1,6 @@
 import csv
 import itertools
+import time
 
 def read_distances(filename):
     with open(filename, "r") as f:
@@ -10,36 +11,54 @@ def read_distances(filename):
             distances.append([int(x) for x in row[1:]])
         return cities, distances
 
-def held_karp(graph):
-    n = len(graph)
-    memo = {}  # Memoization dictionary to store computed subproblem results
+def tsp(G, n):
+    # Initialize the memoization table g with a dictionary
+    g = {}
 
-    # Initialize memoization for base case: {({1}, 1): weight}
+    # Initialize the path table to store the optimal path
+    path = {}
+
+    # Initialize g for subsets of size 2
     for k in range(1, n):
-        memo[(frozenset([k]), k)] = graph[k][0]
+        g[(frozenset([k]), k)] = G[0][k]
+        path[(frozenset([k]), k)] = [0, k]
 
-    for subset_size in range(2, n+1):
-        subsets = itertools.combinations(range(1, n), subset_size)
-        for subset in subsets:
-            subset = frozenset(subset)
-            for k in subset:
-                if k == 0:
-                    continue
-                # Compute the minimum cost for the current subset and ending at city k
-                memo[(subset, k)] = min(
-                    graph[i][k] + memo[(subset - {k}, i)] for i in subset if i != k
-                )
+    # Dynamic loop
+    for s in range(2, n):
+        for subset in itertools.combinations(range(1, n), s):
+            S = frozenset(subset)
+            for k in S:
+                min_dist = float('inf')
+                min_m = None
+                for m in S:
+                    if m != k:
+                        # Calculate the minimum distance
+                        dist = g[(S - frozenset([k]), m)] + G[m][k]
+                        if dist < min_dist:
+                            min_dist = dist
+                            min_m = m
+                g[(S, k)] = min_dist
+                path[(S, k)] = path[(S - frozenset([k]), min_m)] + [k]
 
-    # Calculate the final result by considering all cities in the subset and returning to the starting city
-    full_set = frozenset(range(1, n))
-    min_tour_cost = min(
-        graph[k][0] + memo[(full_set - {k}, k)] for k in range(1, n)
-    )
+    # Calculate the final optimal tour distance
+    opt = float('inf')
+    final_k = None
+    for k in range(1, n):
+        dist = g[(frozenset(range(1, n)), k)] + G[k][0]
+        if dist < opt:
+            opt = dist
+            final_k = k
 
-    return min_tour_cost
+    # Retrieve the optimal tour path
+    optimal_path = path[(frozenset(range(1, n)), final_k)] + [0]
 
+    return opt, optimal_path
 
-# Example usage
 cities, distances = read_distances("csv/distances.csv")
-result = held_karp(distances)
+start_time = time.time()
+result, path = tsp(distances, len(cities))
+execution_time = time.time() - start_time
 print("Minimum TSP cost:", result)
+print("Optimal tour path:", path)
+print(f"Execution Time: {execution_time} seconds.")
+
