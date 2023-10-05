@@ -21,7 +21,7 @@ start_time = time.time()
 if algorithm == 1:
     result, path = held_karp_algorithm.hka(distances, len(cities))
 elif algorithm == 2:
-    result, path = christofides_algorithm.christofides(cities, distances)
+    path, result = christofides_algorithm.christofides_tsp(list(range(len(cities))), distances)
 elif algorithm == 3:
     result, path = double_tree_algorithm.double_tree(list(range(len(cities))), distances)
 execution_time = time.time() - start_time 
